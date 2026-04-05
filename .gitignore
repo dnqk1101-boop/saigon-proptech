@@ -1,0 +1,17 @@
+data/
+
+.env
+
+__pycache__/
+*.pyc 
+*.pyo
+.pytest_cache/
+
+.ipynb_checkpoints/
+
+
+models/*.pkl
+models/*.joblib
+
+.vscode/
+.idea/

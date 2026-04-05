@@ -205,5 +205,4 @@ Dự án này chỉ dùng cho mục đích học tập và nghiên cứu. Dữ l
 ---
 
 ## Tác giả
-
-Dự án thực hành Data Engineering & Machine Learning — SaigonPropTech
+KienDo 

@@ -1,0 +1,42 @@
+data/
+*.csv
+*.json
+*.parquet
+
+# Git
+.git/
+.gitignore
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+
+# Môi trường ảo
+venv/
+.venv/
+env/
+
+# Jupyter
+.ipynb_checkpoints/
+notebooks/
+
+# Model đã train
+models/*.pkl
+models/*.joblib
+models/*.h5
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Secret
+.env
+*.log
+
+# Test
+tests/

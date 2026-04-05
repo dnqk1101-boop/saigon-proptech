@@ -1,0 +1,40 @@
+services:
+  scraper:
+    build: .
+    env_file: .env
+    volumes:
+      - ./data:/app/data
+    depends_on:
+      - sqlserver
+
+  # THÊM service này
+  jupyter:
+    build: .
+    env_file: .env
+    volumes:
+      - ./notebooks:/app/notebooks
+      - ./data:/app/data
+    ports:
+      - "8888:8888"
+    depends_on:
+      - sqlserver
+    command: >
+      jupyter notebook
+      --ip=0.0.0.0
+      --port=8888
+      --no-browser
+      --allow-root
+      --NotebookApp.token=''
+
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      SA_PASSWORD: "${DB_PASSWORD}"
+      ACCEPT_EULA: "Y"
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqldata:/var/opt/mssql
+
+volumes:
+  sqldata:

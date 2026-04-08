@@ -185,26 +185,7 @@ docker-compose up api
 
 ## Deploy lên Railway (link công khai)
 
-### 1. Chuẩn bị
-
-```bash
-# Đảm bảo file này tồn tại
-ls models/best_model_v2.pkl
-ls models/feature_cols_v2.pkl
-ls models/model_metrics_v2.pkl
-ls Procfile
-ls runtime.txt
-ls requirements_deploy.txt
-```
-
-### 2. Deploy
-
-1. Vào [railway.app](https://railway.app) → đăng nhập bằng GitHub
-2. Chọn **New Project** → **Deploy from GitHub repo**
-3. Chọn repo `saigon-proptech`
-4. Railway tự detect `Procfile` và build
-5. Vào **Settings** → **Networking** → **Generate Domain**
-6. Link dạng: `https://saigon-proptech-production.up.railway.app`
+saigon-proptech-production.up.railway.app
 
 ### 3. Kiểm tra
 

@@ -19,7 +19,14 @@ RUN apt-get update && apt-get install -y \
     gcc \
     g++ \
     && rm -rf /var/lib/apt/lists/*
-RUN pip install --upgrade pip
+
+RUN apt-get update && apt-get install -y \
+    unixodbc-dev \
+    gcc \
+    g++ \
+    fonts-dejavu \
+    && rm -rf /var/lib/apt/lists/*
+
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 

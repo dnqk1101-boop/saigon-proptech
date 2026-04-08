@@ -130,7 +130,6 @@ def parse_features(soup_item) -> dict:
         "has_kitchen": 1 if any(k in text for k in ["bếp", "nấu ăn", "kitchen"]) else 0,
         "has_balcony": 1 if any(k in text for k in ["ban công", "balcony"]) else 0,
         "has_security": 1 if any(k in text for k in ["bảo vệ", "camera", "vân tay", "an ninh", "security"]) else 0,
-        "share_ownership": 1 if any(k in text for k in ["không chung chủ", "giờ giấc tự do"]) else 0,
     }
 
 def fetch_page(url: str, retries: int = 3) -> BeautifulSoup | None:
@@ -314,19 +313,28 @@ def main():
             if not listings:
                 log.info(f"Không còn dữ liệu ở trang {page_num}")
                 break
-
+            inserted_this_page = 0
+            skipped_this_page = 0
             for listing in listings:
                 inserted = insert_to_db(conn, listing, log_id)
                 if inserted:
                     total_inserted += 1
+                    inserted_this_page += 1
                 else:
                     total_skipped += 1
+                    skipped_this_page += 1
 
             log.info(
                 f"Trang {page_num} xong | "
-                f"Tổng inserted: {total_inserted} |"
-                f"Tổng skipped: {total_skipped}"
+                f"Mới: {inserted_this_page} | Trùng: {skipped_this_page} || "
+                f"Tổng Mới: {total_inserted} | Tổng Trùng: {total_skipped}"
             )
+
+            if skipped_this_page == len(listings) and len(listings) > 0:
+                log.info("Phát hiện dữ liệu đã cũ toàn bộ")
+                log.info(f"Trang {page_num} có {skipped_this_page}/{len(listings)} tin trùng lặp.")
+                log.info(f"Kích hoạt Early Stopping")
+                break
 
             time.sleep(SCRAPER_DELAY)
 

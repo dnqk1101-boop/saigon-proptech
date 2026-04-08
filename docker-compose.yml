@@ -7,13 +7,22 @@ services:
     depends_on:
       - sqlserver
 
-  # THÊM service này
+  detail_scraper:
+    build: .
+    env_file: .env
+    volumes:
+      - ./data:/app/data
+    depends_on:
+      - sqlserver
+    command: python scraper/detail_scraper.py
+
   jupyter:
     build: .
     env_file: .env
     volumes:
       - ./notebooks:/app/notebooks
       - ./data:/app/data
+      - ./models:/app/models
     ports:
       - "8888:8888"
     depends_on:
@@ -25,7 +34,18 @@ services:
       --no-browser
       --allow-root
       --NotebookApp.token=''
-
+  api:
+    build: .
+    env_file: .env
+    volumes:
+      - ./models:/app/models
+      - ./api:/app/api
+    ports:
+      - "8000:8000"
+    depends_on:
+      - sqlserver
+    command: uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload
+    
   sqlserver:
     image: mcr.microsoft.com/mssql/server:2022-latest
     environment:

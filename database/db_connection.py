@@ -11,7 +11,12 @@ def get_connection():
         f"PWD={DB_PASSWORD};"
         f"TrustServerCertificate=yes;"
         f"Encoding=utf-8;"
+        f"AutoTranslate=No;"
     )
+    conn = pyodbc.connect(conn_str)
+    conn.setdecoding(pyodbc.SQL_CHAR, encoding='utf-8')
+    conn.setdecoding(pyodbc.SQL_WCHAR, encoding='utf-8')
+    conn.setencoding(encoding='utf-8')
     max_retries = 10
     for i in range(max_retries):
         try:

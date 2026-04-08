@@ -334,5 +334,5 @@ curl -X POST https://your-app.up.railway.app/predict \
 ---
 
 ## Tác giả
-
 KienDo
+

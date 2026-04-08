@@ -4,7 +4,7 @@ GO
 USE SaigonPropTech
 GO
 
-CREATE OR ALTER TABLE districts (
+CREATE TABLE districts (
     district_id     INT             PRIMARY KEY IDENTITY(1,1),
     name            NVARCHAR(1000)  NOT NULL,
     city            NVARCHAR(100)   NOT NULL DEFAULT N'TP. Hồ Chí Minh',
@@ -68,8 +68,7 @@ CREATE TABLE listing_features (
     has_parking     BIT             NOT NULL DEFAULT 0,
     has_kitchen     BIT             NOT NULL DEFAULT 0,
     has_balcony     BIT             NOT NULL DEFAULT 0,
-    has_security    BIT             NOT NULL DEFAULT 0,
-    floor_number    TINYINT         NULL
+    has_security    BIT             NOT NULL DEFAULT 0
 );
 
 CREATE INDEX idx_features_listing ON listing_features(listing_id);
@@ -108,7 +107,6 @@ SELECT
     ISNULL(f.has_parking,   0)      AS has_parking,
     ISNULL(f.has_security,  0)      AS has_security,
     ISNULL(f.share_ownership, 0)    AS share_ownership,
-    f.floor_number,
     l.scraped_at
 
 FROM listings l

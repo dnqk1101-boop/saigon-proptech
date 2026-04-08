@@ -9,3 +9,5 @@ jupyter
 matplotlib
 seaborn
 ipykernel
+fastapi
+uvicorn

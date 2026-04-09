@@ -13,8 +13,7 @@ from pydantic import BaseModel
 app = FastAPI(title="SaigonPropTech Price Predictor")
 
 # Load model từ thư mục models/
-BASE_DIR  = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-MODEL_DIR = os.path.join(BASE_DIR, "models")
+MODEL_DIR = "/app/models"
 
 
 if os.path.exists(MODEL_DIR):

@@ -11,3 +11,5 @@ seaborn
 ipykernel
 fastapi
 uvicorn
+lightgbm
+catboost

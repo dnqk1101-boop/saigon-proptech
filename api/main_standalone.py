@@ -12,19 +12,26 @@ from pydantic import BaseModel
 
 app = FastAPI(title="SaigonPropTech Price Predictor")
 
-# Load model từ thư mục models/
 MODEL_DIR = "/app/models"
 
+if not os.path.exists(MODEL_DIR):
+    BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    MODEL_DIR = os.path.join(BASE_DIR, "models")
 
+print(f"--- DIAGNOSTICS ---")
+print(f"Checking MODEL_DIR: {MODEL_DIR}")
 if os.path.exists(MODEL_DIR):
-    print(f"DEBUG: Files in {MODEL_DIR}: {os.listdir(MODEL_DIR)}")
+    print(f"Files found: {os.listdir(MODEL_DIR)}")
 else:
-    print(f"DEBUG: MODEL_DIR NOT FOUND AT {MODEL_DIR}")
-
+    print(f"FOLDER NOT FOUND! Root content: {os.listdir('/')}")
+    print(f"Working dir content: {os.listdir(os.getcwd())}")
 
 def safe_load(filename):
     path = os.path.join(MODEL_DIR, filename)
     if not os.path.exists(path):
+        alternative_path = os.path.join(os.getcwd(), "models", filename)
+        if os.path.exists(alternative_path):
+            return joblib.load(alternative_path)
         raise FileNotFoundError(f"Missing file: {path}")
     return joblib.load(path)
 

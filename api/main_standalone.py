@@ -16,6 +16,23 @@ app = FastAPI(title="SaigonPropTech Price Predictor")
 BASE_DIR  = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MODEL_DIR = os.path.join(BASE_DIR, "models")
 
+
+if os.path.exists(MODEL_DIR):
+    print(f"DEBUG: Files in {MODEL_DIR}: {os.listdir(MODEL_DIR)}")
+else:
+    print(f"DEBUG: MODEL_DIR NOT FOUND AT {MODEL_DIR}")
+
+
+def safe_load(filename):
+    path = os.path.join(MODEL_DIR, filename)
+    if not os.path.exists(path):
+        raise FileNotFoundError(f"Missing file: {path}")
+    return joblib.load(path)
+
+model     = safe_load("best_model_v2.pkl")
+feat_cols = safe_load("feature_cols_v2.pkl")
+metrics   = safe_load("model_metrics_v2.pkl")
+
 model     = joblib.load(os.path.join(MODEL_DIR, "best_model_v2.pkl"))
 feat_cols = joblib.load(os.path.join(MODEL_DIR, "feature_cols_v2.pkl"))
 metrics   = joblib.load(os.path.join(MODEL_DIR, "model_metrics_v2.pkl"))

@@ -25,7 +25,7 @@ env/
 notebooks/
 
 # Model đã train
-models/*.pkl
+
 models/*.joblib
 models/*.h5
 

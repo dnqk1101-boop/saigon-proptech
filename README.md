@@ -10,10 +10,10 @@ Dự án Machine Learning end-to-end: thu thập dữ liệu tự động từ p
 
 | Metric | Giá trị | Ý nghĩa |
 |---|---|---|
-| R² Score | 0.41 | Giải thích 41% biến động giá |
-| MAE | 0.69 triệu | Sai số trung bình ~690k VNĐ |
-| RMSE | 0.99 triệu | Sai số căn bình phương ~990k |
-| Thuật toán | Gradient Boosting | Tốt nhất trong 5 model thử |
+| R² Score | 0.49 | Giải thích ~49% biến động giá |
+| MAE | 0.72 triệu | Sai số trung bình ~720k VNĐ  |
+| RMSE | 1 triệu | Sai số căn bình phương ~1000k |
+| Thuật toán | Random Forest | Vượt qua CatBoost và LightGBM |
 | Khoảng tin cậy | ±15% | Dùng làm tham khảo |
 
 ---
@@ -146,22 +146,6 @@ docker-compose up api       # http://localhost:8000
 ```
 
 ---
-
-## Deploy Railway
-
-```bash
-# 1. Push lên GitHub (nhánh main)
-git push origin main
-
-# 2. railway.app → New Project → Deploy from GitHub
-# 3. Settings → Networking → Generate Domain
-# 4. Gửi link cho HR
-```
-
-`railway.json` đã cấu hình sẵn để dùng `requirements_deploy.txt`.
-
----
-
 ## API Reference
 
 ### POST /predict

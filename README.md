@@ -11,7 +11,7 @@ Dự án Machine Learning end-to-end: thu thập dữ liệu tự động từ p
 | Metric | Giá trị | Ý nghĩa |
 |---|---|---|
 | R² Score | 0.49 | Giải thích ~49% biến động giá |
-| MAE | 0.72 triệu | Sai số trung bình ~720k VNĐ |
+| MAE | 0.72 triệu | Sai số trung bình ~720k VNĐ  |
 | RMSE | 1 triệu | Sai số căn bình phương ~1000k |
 | Thuật toán | Random Forest | Vượt qua CatBoost và LightGBM |
 | Khoảng tin cậy | ±15% | Dùng làm tham khảo |

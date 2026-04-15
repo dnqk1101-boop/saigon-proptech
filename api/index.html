@@ -2,76 +2,81 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>SaigonPropTech — Dự đoán giá thuê</title>
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: Arial, sans-serif; background: #f0f4f8; min-height: 100vh; }
-  .header { background: #0F6E56; color: white; padding: 20px 32px; }
-  .header h1 { font-size: 22px; }
-  .header p  { font-size: 13px; opacity: 0.8; margin-top: 4px; }
-  .container { max-width: 860px; margin: 32px auto; padding: 0 16px; }
-  .card { background: rgb(255, 255, 255); border-radius: 12px; padding: 28px;
-          margin-bottom: 24px; box-shadow: 0 1px 4px rgba(97, 63, 63, 0.08); }
-  .card h2 { font-size: 16px; color: #0F6E56; margin-bottom: 20px;
-             padding-bottom: 10px; border-bottom: 1px solid #eee; }
-  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-  .form-group { display: flex; flex-direction: column; gap: 6px; }
-  .form-group.full { grid-column: 1 / -1; }
-  label { font-size: 13px; color: #555; font-weight: 500; }
-  input, select { padding: 10px 12px; border: 1px solid #ddd;
-                  border-radius: 8px; font-size: 14px; outline: none; }
-  input:focus, select:focus { border-color: #0F6E56; }
-  .amenity-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 4px; }
-  .amenity-item { display: flex; align-items: center; gap: 8px;
-                  padding: 8px 12px; border: 1px solid #eee;
-                  border-radius: 8px; cursor: pointer; font-size: 13px; }
-  .amenity-item input[type=checkbox] { width: 16px; height: 16px;
-                                        accent-color: #0F6E56; cursor: pointer; }
-  .amenity-item:has(input:checked) { background: #e8f5ee; border-color: #0F6E56; color: #0F6E56; }
-  .btn { width: 100%; padding: 14px; background: #0F6E56; color: white;
-         border: none; border-radius: 8px; font-size: 16px;
-         cursor: pointer; margin-top: 8px; }
-  .btn:hover { background: #085041; }
-  .btn:disabled { background: #aaa; cursor: not-allowed; }
-  .result { display: none; }
-  .result.show { display: block; }
-  .price-main { font-size: 42px; font-weight: bold; color: #0F6E56; text-align: center; }
-  .price-unit { font-size: 16px; color: #666; text-align: center; margin-top: 4px; }
-  .price-range { display: flex; justify-content: center; gap: 32px; margin-top: 16px; }
-  .range-item { text-align: center; }
-  .range-item .val { font-size: 20px; font-weight: 600; color: #378ADD; }
-  .range-item .lbl { font-size: 12px; color: #999; margin-top: 2px; }
-  .meta { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
-  .meta-item { background: #f5f5f5; border-radius: 8px; padding: 12px; font-size: 13px; }
-  .meta-item .k { color: #999; }
-  .meta-item .v { font-weight: 600; margin-top: 2px; }
-  .loading { text-align: center; padding: 24px; color: #666; display: none; }
-  .error { background: #fff0f0; border: 1px solid #fcc; border-radius: 8px;
-           padding: 16px; color: #c00; display: none; }
-  @media (max-width: 600px) {
-    .form-grid, .amenity-grid { grid-template-columns: 1fr 1fr; }
-    .price-range { gap: 16px; }
-  }
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;background:#f0f4f8;min-height:100vh}
+.header{background:#0F6E56;color:#fff;padding:20px 32px}
+.header h1{font-size:20px}
+.header p{font-size:12px;opacity:.8;margin-top:4px}
+.container{max-width:640px;margin:28px auto;padding:0 16px}
+.card{background:#fff;border-radius:12px;padding:24px;
+      margin-bottom:20px;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.card h2{font-size:14px;color:#0F6E56;margin-bottom:16px;
+         padding-bottom:8px;border-bottom:1px solid #eee;text-transform:uppercase;letter-spacing:.5px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.full{grid-column:1/-1}
+.fg{display:flex;flex-direction:column;gap:5px}
+label{font-size:12px;color:#666;font-weight:500}
+input,select{padding:10px 12px;border:1px solid #ddd;border-radius:8px;
+             font-size:14px;outline:none;width:100%}
+input:focus,select:focus{border-color:#0F6E56}
+
+/* Toggle chips cho tiện ích */
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+.chip{display:flex;align-items:center;gap:6px;padding:8px 14px;
+      border:1.5px solid #ddd;border-radius:20px;cursor:pointer;
+      font-size:13px;user-select:none;transition:all .15s}
+.chip input{display:none}
+.chip.active{background:#e8f5ee;border-color:#0F6E56;color:#0F6E56;font-weight:600}
+.chip .dot{width:7px;height:7px;border-radius:50%;background:#ccc}
+.chip.active .dot{background:#0F6E56}
+
+.btn{width:100%;padding:14px;background:#0F6E56;color:#fff;border:none;
+     border-radius:8px;font-size:15px;cursor:pointer;margin-top:4px;font-weight:600}
+.btn:hover{background:#085041}
+.btn:disabled{background:#aaa;cursor:not-allowed}
+
+/* Result */
+.result{display:none}
+.result.show{display:block}
+.price-hero{text-align:center;padding:24px 0 16px}
+.price-val{font-size:48px;font-weight:700;color:#0F6E56}
+.price-unit{font-size:14px;color:#999;margin-top:2px}
+.range-row{display:flex;justify-content:center;gap:40px;margin-top:14px}
+.range-item{text-align:center}
+.range-item .rv{font-size:20px;font-weight:600;color:#378ADD}
+.range-item .rl{font-size:11px;color:#aaa;margin-top:2px}
+.meta-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+.meta-box{background:#f5f5f5;border-radius:8px;padding:12px}
+.meta-box .mk{font-size:11px;color:#aaa}
+.meta-box .mv{font-size:13px;font-weight:600;margin-top:2px;color:#333}
+.note{font-size:11px;color:#e07000;background:#fff8ec;border-radius:6px;
+      padding:8px 12px;margin-top:12px;text-align:center}
+.loading{text-align:center;padding:20px;color:#666;display:none}
+.err{background:#fff0f0;border:1px solid #fcc;border-radius:8px;
+     padding:14px;color:#c00;display:none;margin-top:12px;font-size:13px}
 </style>
 </head>
 <body>
 
 <div class="header">
-  <h1>SaigonPropTech — Dự đoán giá thuê phòng trọ</h1>
-  <p>Nhập thông tin phòng để nhận giá dự đoán từ mô hình Machine Learning</p>
+  <h1>SaigonPropTech — Dự đoán giá thuê phòng trọ TP.HCM</h1>
+  <p>Nhập thông tin → nhận giá ước tính từ mô hình Machine Learning</p>
 </div>
 
 <div class="container">
+
   <div class="card">
-    <h2>Thông tin cơ bản</h2>
-    <div class="form-grid">
-      <div class="form-group full">
+    <h2>Thông tin phòng</h2>
+    <div class="grid2">
+      <div class="fg full">
         <label>Địa chỉ (số nhà, tên đường, phường)</label>
-        <input type="text" id="address"
+        <input id="address" type="text"
                placeholder="VD: 123 Nguyễn Trãi, Phường 2">
       </div>
-      <div class="form-group">
+      <div class="fg">
         <label>Quận / Huyện</label>
         <select id="district_id">
           <option value="1">Quận 1</option>
@@ -100,152 +105,144 @@
           <option value="24">Củ Chi</option>
         </select>
       </div>
-      <div class="form-group">
+      <div class="fg">
         <label>Diện tích (m²)</label>
-        <input type="number" id="area_m2" value="25" min="6" max="80">
+        <input id="area_m2" type="number" value="25" min="6" max="80">
+      </div>
+      <div class="fg full">
+        <label>Loại phòng</label>
+        <select id="room_type">
+          <option value="0">Phòng trọ thông thường</option>
+          <option value="1">Căn hộ / Chung cư</option>
+          <option value="2">Nhà nguyên căn</option>
+          <option value="3">Căn hộ dịch vụ</option>
+        </select>
       </div>
     </div>
   </div>
 
   <div class="card">
-    <h2>Tiện ích</h2>
-    <div class="amenity-grid">
-      <label class="amenity-item">
-        <input type="checkbox" id="has_ac"> Máy lạnh
+    <h2>Đặc điểm nổi bật</h2>
+    <p style="font-size:12px;color:#999;margin-bottom:12px">
+      Chọn những tiện ích phù hợp — chỉ chọn nếu thật sự có
+    </p>
+    <div class="chips">
+      <label class="chip" id="chip_furnished" onclick="toggleChip(this,'is_furnished')">
+        <span class="dot"></span> Nội thất đầy đủ
+        <input type="checkbox" id="is_furnished">
       </label>
-      <label class="amenity-item">
-        <input type="checkbox" id="has_wc"> WC riêng
+      <label class="chip" id="chip_elevator" onclick="toggleChip(this,'has_elevator')">
+        <span class="dot"></span> Thang máy
+        <input type="checkbox" id="has_elevator">
       </label>
-      <label class="amenity-item">
-        <input type="checkbox" id="has_furniture"> Nội thất đầy đủ
+      <label class="chip" id="chip_basement" onclick="toggleChip(this,'has_basement')">
+        <span class="dot"></span> Hầm để xe
+        <input type="checkbox" id="has_basement">
       </label>
-      <label class="amenity-item">
-        <input type="checkbox" id="has_kitchen"> Bếp / Kệ bếp
+      <label class="chip" id="chip_noowner" onclick="toggleChip(this,'no_owner')">
+        <span class="dot"></span> Không chung chủ
+        <input type="checkbox" id="no_owner">
       </label>
-      <label class="amenity-item">
-        <input type="checkbox" id="has_washer"> Máy giặt
-      </label>
-      <label class="amenity-item">
-        <input type="checkbox" id="has_fridge"> Tủ lạnh
-      </label>
-      <label class="amenity-item">
-        <input type="checkbox" id="has_elevator"> Thang máy
-      </label>
-      <label class="amenity-item">
-        <input type="checkbox" id="has_basement"> Hầm để xe
-      </label>
-      <label class="amenity-item">
-        <input type="checkbox" id="has_balcony"> Ban công
-      </label>
-      <label class="amenity-item">
-        <input type="checkbox" id="has_security"> Bảo vệ 24/24
-      </label>
-      <label class="amenity-item">
-        <input type="checkbox" id="has_parking"> Chỗ để xe
-      </label>
-      <label class="amenity-item">
-        <input type="checkbox" id="no_owner"> Không chung chủ
-      </label>
-      <label class="amenity-item">
-        <input type="checkbox" id="free_hours"> Giờ giấc tự do
+      <label class="chip" id="chip_freehours" onclick="toggleChip(this,'free_hours')">
+        <span class="dot"></span> Giờ giấc tự do
+        <input type="checkbox" id="free_hours">
       </label>
     </div>
-
     <button class="btn" id="btn" onclick="predict()">
       Dự đoán giá thuê
     </button>
   </div>
 
-  <div class="loading" id="loading">
-    Đang phân tích và dự đoán...
-  </div>
-
-  <div class="error" id="error"></div>
+  <div class="loading" id="loading">Đang phân tích địa chỉ và dự đoán...</div>
+  <div class="err" id="err"></div>
 
   <div class="card result" id="result">
     <h2>Kết quả dự đoán</h2>
-    <div class="price-main" id="price-main">—</div>
-    <div class="price-unit">triệu VNĐ / tháng</div>
-    <div class="price-range">
-      <div class="range-item">
-        <div class="val" id="price-low">—</div>
-        <div class="lbl">Thấp nhất</div>
-      </div>
-      <div class="range-item">
-        <div class="val" id="price-high">—</div>
-        <div class="lbl">Cao nhất</div>
-      </div>
-    </div>
-    <div class="meta">
-      <div class="meta-item">
-        <div class="k">Khu vực</div>
-        <div class="v" id="meta-district">—</div>
-      </div>
-      <div class="meta-item">
-        <div class="k">Tọa độ (tự động)</div>
-        <div class="v" id="meta-coords">—</div>
+    <div class="price-hero">
+      <div class="price-val"><span id="price-main">—</span></div>
+      <div class="price-unit">triệu VNĐ / tháng</div>
+      <div class="range-row">
+        <div class="range-item">
+          <div class="rv" id="price-low">—</div>
+          <div class="rl">Thấp nhất</div>
+        </div>
+        <div class="range-item">
+          <div class="rv" id="price-high">—</div>
+          <div class="rl">Cao nhất</div>
+        </div>
       </div>
     </div>
+    <div class="meta-row">
+      <div class="meta-box">
+        <div class="mk">Khu vực</div>
+        <div class="mv" id="meta-dist">—</div>
+      </div>
+      <div class="meta-box">
+        <div class="mk">Tọa độ (tự geocode)</div>
+        <div class="mv" id="meta-coords">—</div>
+      </div>
+    </div>
+    <div class="note" id="meta-note">—</div>
   </div>
+
 </div>
 
 <script>
+function toggleChip(label, id) {
+  const cb = document.getElementById(id);
+  cb.checked = !cb.checked;
+  label.classList.toggle("active", cb.checked);
+}
+
 async function predict() {
-  const btn     = document.getElementById("btn");
-  const loading = document.getElementById("loading");
-  const error   = document.getElementById("error");
-  const result  = document.getElementById("result");
+  const btn  = document.getElementById("btn");
+  const load = document.getElementById("loading");
+  const err  = document.getElementById("err");
+  const res  = document.getElementById("result");
 
   const address = document.getElementById("address").value.trim();
   if (!address) { alert("Vui lòng nhập địa chỉ!"); return; }
 
-  btn.disabled      = true;
-  loading.style.display = "block";
-  error.style.display   = "none";
-  result.classList.remove("show");
+  btn.disabled = true;
+  load.style.display = "block";
+  err.style.display  = "none";
+  res.classList.remove("show");
 
   const body = {
-    address:       address,
-    district_id:   parseInt(document.getElementById("district_id").value),
-    area_m2:       parseFloat(document.getElementById("area_m2").value),
-    has_ac:        document.getElementById("has_ac").checked ? 1 : 0,
-    has_wc:        document.getElementById("has_wc").checked ? 1 : 0,
-    has_furniture: document.getElementById("has_furniture").checked ? 1 : 0,
-    has_kitchen:   document.getElementById("has_kitchen").checked ? 1 : 0,
-    has_washer:    document.getElementById("has_washer").checked ? 1 : 0,
-    has_fridge:    document.getElementById("has_fridge").checked ? 1 : 0,
-    has_elevator:  document.getElementById("has_elevator").checked ? 1 : 0,
-    has_basement:  document.getElementById("has_basement").checked ? 1 : 0,
-    has_balcony:   document.getElementById("has_balcony").checked ? 1 : 0,
-    has_security:  document.getElementById("has_security").checked ? 1 : 0,
-    has_parking:   document.getElementById("has_parking").checked ? 1 : 0,
-    no_owner:      document.getElementById("no_owner").checked ? 1 : 0,
-    free_hours:    document.getElementById("free_hours").checked ? 1 : 0,
+    address:      address,
+    district_id:  +document.getElementById("district_id").value,
+    area_m2:      +document.getElementById("area_m2").value,
+    room_type:    +document.getElementById("room_type").value,
+    is_furnished: document.getElementById("is_furnished").checked ? 1 : 0,
+    has_elevator: document.getElementById("has_elevator").checked ? 1 : 0,
+    has_basement: document.getElementById("has_basement").checked ? 1 : 0,
+    no_owner:     document.getElementById("no_owner").checked ? 1 : 0,
+    free_hours:   document.getElementById("free_hours").checked ? 1 : 0,
   };
 
   try {
-    const resp = await fetch("/predict", {
-      method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify(body),
+    const r    = await fetch("/predict", {
+      method:  "POST",
+      headers: {"Content-Type":"application/json"},
+      body:    JSON.stringify(body),
     });
-    const data = await resp.json();
+    const data = await r.json();
 
     document.getElementById("price-main").textContent  = data.price_million.toFixed(2);
     document.getElementById("price-low").textContent   = data.price_range.low.toFixed(2) + "M";
     document.getElementById("price-high").textContent  = data.price_range.high.toFixed(2) + "M";
-    document.getElementById("meta-district").textContent = data.district_name;
+    document.getElementById("meta-dist").textContent   = data.district_name;
     document.getElementById("meta-coords").textContent =
       `${data.geocoded.lat.toFixed(4)}, ${data.geocoded.lng.toFixed(4)}`;
-
-    result.classList.add("show");
-  } catch (e) {
-    error.textContent     = "Lỗi kết nối API. Kiểm tra server đang chạy không.";
-    error.style.display   = "block";
+    document.getElementById("meta-note").textContent   = data.note;
+    res.classList.add("show");
+  } catch(e) {
+    err.textContent    = "Lỗi kết nối API. Kiểm tra server đang chạy không.";
+    err.style.display  = "block";
   }
 
-  btn.disabled          = false;
-  loading.style.display = "none";
+  btn.disabled       = false;
+  load.style.display = "none";
 }
 </script>
 </body>

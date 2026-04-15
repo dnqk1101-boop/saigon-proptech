@@ -10,6 +10,7 @@ __pycache__/
 .ipynb_checkpoints/
 
 catboost_info/
+notebooks/catboost_info/
 
 .vscode/
 .idea/

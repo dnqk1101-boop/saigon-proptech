@@ -1,6 +1,8 @@
 fastapi
 uvicorn
 scikit-learn
+lightgbm
+catboost
 pandas
 numpy
 joblib

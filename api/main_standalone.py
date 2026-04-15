@@ -1,47 +1,53 @@
-# api/main_standalone.py
-# Version standalone cho Railway deploy — không cần SQL Server
-import os, sys
-import numpy as np
-import pandas as pd
-import joblib
-import requests
-import time
+# api/main_standalone.py — v3: LightGBM hoặc CatBoost
+import os, sys, numpy as np, pandas as pd, joblib, requests
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 
-app = FastAPI(title="SaigonPropTech Price Predictor")
+app = FastAPI(title="SaigonPropTech Price Predictor v3")
 
-MODEL_DIR = "/app/models"
+BASE_DIR  = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+MODEL_DIR = os.path.join(BASE_DIR, "models")
 
-if not os.path.exists(MODEL_DIR):
-    BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    MODEL_DIR = os.path.join(BASE_DIR, "models")
 
-print(f"--- DIAGNOSTICS ---")
-print(f"Checking MODEL_DIR: {MODEL_DIR}")
-if os.path.exists(MODEL_DIR):
-    print(f"Files found: {os.listdir(MODEL_DIR)}")
-else:
-    print(f"FOLDER NOT FOUND! Root content: {os.listdir('/')}")
-    print(f"Working dir content: {os.listdir(os.getcwd())}")
+def load_model():
+    """
+    Thử load theo thứ tự: v4 champion (Random Forest) -> v3 cbm (CatBoost) -> v2 pkl (fallback)
+    """
+    path_model_v4 = os.path.join(MODEL_DIR, "best_model_v4_champion.pkl")
+    path_feat_v4  = os.path.join(MODEL_DIR, "feature_cols_v4.pkl")
+    
+    if os.path.exists(path_model_v4) and os.path.exists(path_feat_v4):
+        model = joblib.load(path_model_v4)
+        feat  = joblib.load(path_feat_v4)
+        
+        path_metrics_v4 = os.path.join(MODEL_DIR, "model_metrics_v4.pkl")
+        if os.path.exists(path_metrics_v4):
+            metrics = joblib.load(path_metrics_v4)
+        else:
+            metrics = {"algorithm": "Random Forest", "r2": 0.4889, "mae": 720000} 
+            
+        print(f"Loaded: best_model_v4_champion.pkl (R²={metrics.get('r2',0):.4f})")
+        return model, feat, metrics, "sklearn"
 
-def safe_load(filename):
-    path = os.path.join(MODEL_DIR, filename)
-    if not os.path.exists(path):
-        alternative_path = os.path.join(os.getcwd(), "models", filename)
-        if os.path.exists(alternative_path):
-            return joblib.load(alternative_path)
-        raise FileNotFoundError(f"Missing file: {path}")
-    return joblib.load(path)
+    path_cbm = os.path.join(MODEL_DIR, "best_model_v3.cbm")
+    if os.path.exists(path_cbm):
+        from catboost import CatBoostRegressor
+        model = CatBoostRegressor()
+        model.load_model(path_cbm)
+        feat    = joblib.load(os.path.join(MODEL_DIR, "feature_cols_v3.pkl"))
+        metrics = joblib.load(os.path.join(MODEL_DIR, "model_metrics_v3.pkl"))
+        print(f"Loaded: best_model_v3.cbm (R²={metrics.get('r2',0):.4f})")
+        return model, feat, metrics, "catboost"
 
-model     = safe_load("best_model_v2.pkl")
-feat_cols = safe_load("feature_cols_v2.pkl")
-metrics   = safe_load("model_metrics_v2.pkl")
+    model   = joblib.load(os.path.join(MODEL_DIR, "best_model_v2.pkl"))
+    feat    = joblib.load(os.path.join(MODEL_DIR, "feature_cols_v2.pkl"))
+    metrics = joblib.load(os.path.join(MODEL_DIR, "model_metrics_v2.pkl"))
+    print(f"Loaded: best_model_v2.pkl (fallback, R²={metrics.get('r2',0):.4f})")
+    return model, feat, metrics, "sklearn"
 
-model     = joblib.load(os.path.join(MODEL_DIR, "best_model_v2.pkl"))
-feat_cols = joblib.load(os.path.join(MODEL_DIR, "feature_cols_v2.pkl"))
-metrics   = joblib.load(os.path.join(MODEL_DIR, "model_metrics_v2.pkl"))
+
+model, feat_cols, metrics, model_type = load_model()
 
 DISTRICT_MAP = {
     1:"Quận 1",    2:"Quận 2",    3:"Quận 3",    4:"Quận 4",
@@ -63,102 +69,103 @@ DISTRICT_COORDS = {
     22:(10.6997,106.7370),23:(10.4113,106.9531),24:(10.9767,106.4956),
 }
 
+DISTRICT_TIER = {
+    **{i: 2 for i in [1,2,3,4,7,16]},
+    **{i: 1 for i in [5,6,8,10,13,17,18]},
+    **{i: 0 for i in [14,15,19,20,21,22,23,24]},
+}
 
-def geocode(address: str, district_id: int) -> tuple[float, float]:
-    try:
-        resp = requests.get(
-            "https://nominatim.openstreetmap.org/search",
-            params={"q": f"{address}, TP. Ho Chi Minh, Viet Nam",
-                    "format": "json", "limit": 1, "countrycodes": "vn"},
-            headers={"User-Agent": "SaigonPropTech/1.0"},
-            timeout=5,
-        )
-        data = resp.json()
-        if data:
-            return float(data[0]["lat"]), float(data[0]["lon"])
-    except Exception:
-        pass
-    return DISTRICT_COORDS.get(district_id, (10.7769, 106.7009))
+
+def geocode(address: str, district_id: int) -> tuple[float,float]:
+    import unicodedata
+    def rm(t):
+        return "".join(c for c in unicodedata.normalize("NFD",t)
+                       if not unicodedata.combining(c))
+    for q in [f"{address}, TP. Ho Chi Minh, Viet Nam",
+              rm(f"{address}, TP. Ho Chi Minh, Viet Nam")]:
+        try:
+            r = requests.get(
+                "https://nominatim.openstreetmap.org/search",
+                params={"q":q,"format":"json","limit":1,"countrycodes":"vn"},
+                headers={"User-Agent":"SaigonPropTech/1.0"},
+                timeout=5,
+            )
+            data = r.json()
+            if data:
+                return float(data[0]["lat"]), float(data[0]["lon"])
+        except Exception:
+            pass
+    return DISTRICT_COORDS.get(district_id, (10.7769,106.7009))
 
 
 class PredictRequest(BaseModel):
-    address:       str
-    district_id:   int
-    area_m2:       float
-    room_type:     int = 0
-    has_ac:        int = 0
-    has_wc:        int = 0
-    has_furniture: int = 0
-    has_kitchen:   int = 0
-    has_washer:    int = 0
-    has_fridge:    int = 0
-    has_elevator:  int = 0
-    has_basement:  int = 0
-    has_balcony:   int = 0
-    has_security:  int = 0
-    has_parking:   int = 0
-    no_owner:      int = 0
-    free_hours:    int = 0
+    address:      str
+    district_id:  int
+    area_m2:      float
+    room_type:    int = 0
+    is_furnished: int = 0
+    has_elevator: int = 0
+    has_basement: int = 0
+    no_owner:     int = 0
+    free_hours:   int = 0
+
+
+def build_input(req: PredictRequest, lat: float, lng: float) -> pd.DataFrame:
+    row = {col: 0 for col in feat_cols}
+    row["area_m2"]        = req.area_m2
+    row["log_area"]       = np.log1p(req.area_m2)
+    row["lat"]            = lat
+    row["lng"]            = lng
+    row["room_type_enc"]  = req.room_type
+    row["district_tier"]  = DISTRICT_TIER.get(req.district_id, 1)
+    row["has_furniture"]  = req.is_furnished
+    row["has_elevator"]   = req.has_elevator
+    row["has_basement"]   = req.has_basement
+    row["no_owner"]       = req.no_owner
+    row["free_hours"]     = req.free_hours
+    row["amenity_count"]  = sum([req.is_furnished, req.has_elevator,
+                                 req.has_basement, req.no_owner, req.free_hours])
+    q_col = f"q_{req.district_id}"
+    if q_col in row:
+        row[q_col] = 1
+    return pd.DataFrame([row])[feat_cols]
 
 
 @app.post("/predict")
 def predict(req: PredictRequest):
     lat, lng = geocode(req.address, req.district_id)
-
-    row = {col: 0 for col in feat_cols}
-    row["area_m2"]       = req.area_m2
-    row["log_area"]      = np.log1p(req.area_m2)
-    row["lat"]           = lat
-    row["lng"]           = lng
-    row["room_type_enc"] = req.room_type
-    row["has_ac"]        = req.has_ac
-    row["has_wc"]        = req.has_wc
-    row["has_furniture"] = req.has_furniture
-    row["has_kitchen"]   = req.has_kitchen
-    row["has_washer"]    = req.has_washer
-    row["has_fridge"]    = req.has_fridge
-    row["has_elevator"]  = req.has_elevator
-    row["has_basement"]  = req.has_basement
-    row["has_balcony"]   = req.has_balcony
-    row["has_security"]  = req.has_security
-    row["has_parking"]   = req.has_parking
-    row["no_owner"]      = req.no_owner
-    row["free_hours"]    = req.free_hours
-    row["amenity_count"] = sum([
-        req.has_ac, req.has_wc, req.has_furniture, req.has_kitchen,
-        req.has_washer, req.has_fridge, req.has_elevator,
-        req.has_basement, req.has_balcony, req.has_security, req.has_parking,
-    ])
-    q_col = f"q_{req.district_id}"
-    if q_col in row:
-        row[q_col] = 1
-
-    X        = pd.DataFrame([row])[feat_cols]
+    X        = build_input(req, lat, lng)
     price    = np.expm1(model.predict(X)[0])
 
     return {
         "price_vnd":     int(price),
-        "price_million": round(price / 1e6, 2),
+        "price_million": round(price/1e6, 2),
         "price_range": {
-            "low":  round(price * 0.85 / 1e6, 2),
-            "high": round(price * 1.15 / 1e6, 2),
+            "low":  round(price*0.85/1e6, 2),
+            "high": round(price*1.15/1e6, 2),
         },
-        "district_name": DISTRICT_MAP.get(req.district_id, ""),
-        "geocoded": {"lat": round(lat, 6), "lng": round(lng, 6)},
+        "district_name": DISTRICT_MAP.get(req.district_id,""),
+        "geocoded":      {"lat": round(lat,6), "lng": round(lng,6)},
+        "model":         metrics.get("algorithm","GBR"),
+        "note":          f"Khoảng giá ±15% · R²={metrics.get('r2',0):.2f}",
     }
 
 
 @app.get("/health")
 def health():
     return {
-        "status": "ok",
-        "model":  "GradientBoostingRegressor v2",
-        "r2":     round(metrics["r2"], 4),
-        "mae_million": round(metrics["mae"] / 1e6, 2),
+        "status":      "ok",
+        "algorithm":   metrics.get("algorithm","unknown"),
+        "model_type":  model_type,
+        "r2":          round(metrics.get("r2",0), 4),
+        "mae_million": round(metrics.get("mae",0)/1e6, 2),
+        "n_features":  len(feat_cols),
     }
 
 
 @app.get("/", response_class=HTMLResponse)
 def index():
-    html_path = os.path.join(os.path.dirname(__file__), "index.html")
-    return open(html_path, encoding="utf-8").read()
+    return open(
+        os.path.join(os.path.dirname(__file__), "index.html"),
+        encoding="utf-8"
+    ).read()
